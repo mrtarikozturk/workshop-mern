@@ -12,6 +12,8 @@ router.post('/updateCategory', validations.categoryValidation, CategoryControlle
 
 router.get('/deleteCategory/:id', CategoryController.deleteCategory);
 
+router.get('/destroyCategory/:id', CategoryController.destroyCategory);
+
 router.get('/', CategoryController.getCategories);
 
 
