@@ -1,5 +1,6 @@
 const Category = require('../models/Category');
-const { validationResult } = require('express-validator');
+const { validationResult, check } = require('express-validator');
+const checkError = require('../helper/checkError');
 
 exports.addCategory = async (req, res) => {
     try {
@@ -7,15 +8,11 @@ exports.addCategory = async (req, res) => {
 
         //fied validation
         const validationErr = validationResult(req);
-        if (validationErr?.errors?.length > 0) {
-            return res.status(400).json({ errors: validationErr.array() });
-        }
+        checkError(res, validationErr?.errors?.length > 0, validationErr.array())
 
         // category exist check
         const existCategory = await Category.findOne({ categoryName: categoryName });
-        if (existCategory) {
-            return res.status(400).json({ errors: [{ message: "Category already exists" }] })
-        }
+        checkError(res, existCategory, "Category already exists")
 
         //save category
         const category = new Category({
@@ -29,10 +26,9 @@ exports.addCategory = async (req, res) => {
         res.status(200).json(addedCategory);
     }
     catch (err) {
-        return res.status(500).json({ errors: [{ message: err.message }] });
+        checkError(res, err, err.message, 500);
     }
 }
-
 
 exports.getCategory = async (req, res) => {
     try {
@@ -41,7 +37,7 @@ exports.getCategory = async (req, res) => {
 
     }
     catch (err) {
-        return res.status(500).json({ errors: [{ message: err.message }] });
+        checkError(res, err, err.message, 500);
     }
 
 }
@@ -51,9 +47,7 @@ exports.updateCategory = async (req, res) => {
     try {
         // validation
         const validationErr = validationResult(req);
-        if (validationErr?.errors?.length > 0) {
-            return res.status(400).json({ errors: validationErr.array() });
-        }
+        checkError(res, validationErr?.errors?.length > 0, validationErr.array())
 
         //update
         const updatedCategory = await Category.findOneAndUpdate(
@@ -63,7 +57,6 @@ exports.updateCategory = async (req, res) => {
                 // description: req.body.description,
                 ...req.body,
                 status: 'updated',
-                updatedDate: Date.now(),
             },
             {
                 new: true,
@@ -75,7 +68,7 @@ exports.updateCategory = async (req, res) => {
         res.status(200).json(updatedCategory);
 
     } catch (err) {
-        return res.status(500).json({ errors: [{ message: err.message }] });
+        checkError(res, err, err.message, 500);
     }
 }
 
@@ -86,7 +79,7 @@ exports.deleteCategory = async (req, res) => {
             { _id: req.params.id },
             {
                 status: 'deleted',
-                deletedDate: Date.now(),
+                deletedAt: Date.now(),
             },
             {
                 new: true,
@@ -97,7 +90,7 @@ exports.deleteCategory = async (req, res) => {
 
     }
     catch (err) {
-        return res.status(500).json({ errors: [{ message: err.message }] });
+        checkError(res, err, err.message, 500);
     }
 }
 
@@ -107,8 +100,7 @@ exports.getCategories = async (req, res) => {
         res.status(200).json(categories);
     }
     catch (err) {
-
-        return res.status(500).json({ errors: [{ message: err.message }] });
+        checkError(res, err, err.message, 500);
     }
 }
 
@@ -118,6 +110,35 @@ exports.destroyCategory = async (req, res) => {
         res.status(200).send('Data is deleted');
     }
     catch (err) {
-        return res.status(500).json({ errors: [{ message: err.message }] });
+        checkError(res, err, err.message, 500);
     }
 }
+
+
+
+
+/**
+    if (validationErr?.errors?.length > 0) {
+        return res.status(400).json({ errors: validationErr.array() });
+    }
+
+    if (existCategory) {
+        return res.status(400).json({ errors: [{ message: "Category already exists" }] })
+    }
+
+    if (err) {
+        return res.status(500).json({ errors: [{ message: err.message }] });
+    }
+
+    if (err) {
+        return res.status(500).json({ errors: [{ message: err.message }] });
+    }
+
+    if (validationErr?.errors?.length > 0) {
+        return res.status(400).json({ errors: validationErr.array() });
+    }
+
+    if (err) {
+        return res.status(500).json({ errors: [{ message: err.message }] });
+    }
+*/
